@@ -1,0 +1,25 @@
+{
+  "name": "seededmapgenerator",
+  "version": "1.0.0",
+  "description": "Seeded map generator",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve": "node app.js",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vs1998/SeededMapGenerator.git"
+  },
+  "author": "Veit Schumacher <veit.schumacher@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vs1998/SeededMapGenerator/issues"
+  },
+  "homepage": "https://github.com/vs1998/SeededMapGenerator#readme",
+  "dependencies": {
+    "canvas": "^2.8.0",
+    "seedrandom": "^3.0.5"
+  }
+}
