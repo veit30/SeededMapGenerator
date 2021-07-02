@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="./assets/css/styles.css" type="text/css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/lib/alea.min.js"></script>
     <script src="./assets/js/utils.js" type="text/javascript"></script>
+    <script src="./assets/js/noise.js" type="text/javascript"></script>
     <script src="./assets/js/mapper.js" type="text/javascript"></script>
   </head>
   <body>
@@ -14,107 +15,44 @@
       <p id="current-color"></p>
     </div>
     <script type="text/javascript">
-      let canvas = document.getElementById("canvas");
-      canvas.width = canvas.height = 512;
-      let ctx = canvas.getContext("2d");
-
+      // GLOBALS
+      const WIDTH = 512;
       const GRID_SIZE = 4;
-      const RESOLUTION = 64;
+      const RESOLUTION = 16;
       const COLOR_SCALE = 255;
 
-      let pixel_size = canvas.width / RESOLUTION;
-      let num_pixels = GRID_SIZE / RESOLUTION;
+      // CANVAS
+      let canvas = document.getElementById("canvas");
+      canvas.width = canvas.height = WIDTH;
+      let ctx = canvas.getContext("2d");
 
-      noiseToCanvas();
-
-      // perlin.seed("heheh")
-
-      canvas.addEventListener("click", () => {
-        perlin.seed(prng())
-        noiseToCanvas();
-      }, false)
-
-      function noiseToCanvas() {
-        for (let y = 0; y < GRID_SIZE; y += num_pixels / GRID_SIZE){
-          for (let x = 0; x < GRID_SIZE; x += num_pixels / GRID_SIZE){
-            let v = parseInt((perlin.get(x, y)+1)/2 * COLOR_SCALE);
-            ctx.fillStyle = utils.rgbToHex(v, v, v);
-            // ctx.fillStyle = 'hsl('+v+',50%,50%)';
+      // NOISE
+      function renderNoiseOnCanvas(grid, gridSize, ctx) {
+        let width = grid.length;
+        let pixelSize = ctx.canvas.width / (width/gridSize);
+        for(let i = 0; i < width; i++) {
+          for(let j = 0; j < width; j++) {
+            let colorFrac = parseInt(((grid[i][j]+1)/2)*COLOR_SCALE);
+            ctx.fillStyle = utils.rgbToHex(colorFrac,colorFrac,colorFrac);
             ctx.fillRect(
-              x / GRID_SIZE * canvas.width,
-              y / GRID_SIZE * canvas.width,
-              pixel_size,
-              pixel_size
-            );
+              i / width * ctx.canvas.width,
+              j / width * ctx.canvas.width,
+              pixelSize,
+              pixelSize,
+            )
           }
         }
       }
 
-
-
-      // let currentColor = "";
-      //
-      // function getRandomColor() {
-      //   const letters = '0123456789ABCDEF';
-      //   let color = '#';
-      //   for (var i = 0; i < 6; i++) {
-      //     color += letters[Math.floor(Math.random() * 16)];
-      //   }
-      //   currentColor = color;
-      //   return color;
-      // }
-      //
-      // function fillCanvas(ctx, color) {
-      //   ctx.fillStyle = color;
-      //   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-      // }
-      //
-      // function displayCurrentColor() {
-      //   const p = document.getElementById("current-color");
-      //   p.innerHTML = currentColor;
-      // }
-      //
-
-      //
-      // fillCanvas(ctx, getRandomColor());
-      // displayCurrentColor()
-      //
-      // canvas.addEventListener("click", () => {
-      //   fillCanvas(ctx, getRandomColor());
-      //   displayCurrentColor()
-      // }, false)
-
-      function colorCanvasByGrid(grid, ctx) {
-        let w = grid.length;
-        let h = grid[0].length;
-        let cw = ctx.canvas.width;
-        let ch = ctx.canvas.height;
-        for(let x = 0; x < w; x++) {
-          for(let y = 0; y < h; y++) {
-            ctx.fillStyle = grid[x][y];
-            ctx.fillRect(Math.round(x * (cw/w)), Math.round(y * (ch/h)), Math.round(cw/w), Math.round(ch/h));
-          }
-        }
+      function generateNoise() {
+        noise.reset(Math.random())
+        let grid = noise.perlin(GRID_SIZE, RESOLUTION, WIDTH);
+        renderNoiseOnCanvas(grid, GRID_SIZE, ctx);
       }
 
-      function perlinNoise(g) {
-        for(let x = 0; x < g.length; x++) {
-          for(let y = 0; y < g[x].length; y++) {
-            g[x][y] = perlin.get(g[x][y].x, g[x][y].y);
-          }
-        }
-        return g;
-      }
+      canvas.addEventListener("click", generateNoise, false)
 
-      // let grid = createGrid(168);
-      //
-      // grid = perlinNoise(grid);
-      //
-      // console.log(grid);
-      //
-      // let coloredGrid = mapGridToColorValue2(grid);
-      // console.log(coloredGrid);
-      // colorCanvasByGrid(coloredGrid, ctx);
+      generateNoise();
 
     </script>
   </body>

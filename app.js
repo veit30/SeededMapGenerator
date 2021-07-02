@@ -23,9 +23,6 @@ const server = http.createServer((req, res) => {
     res.writeHead(404, {"Content-Type": "text/html"});
     res.end("No Page Found");
   }
-
-  // res.writeHead(200, { 'content-type': 'text/html' })
-  // fs.createReadStream('index.html').pipe(res)
 })
 
 server.listen(process.env.PORT || 3002)
