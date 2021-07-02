@@ -1,12 +1,10 @@
-const prng = new alea();
-
 let noise = {
   reset(seed) {
     this._p.reset(seed);
+    this._s.reset(seed);
   },
   // at first only working for squares
-  perlin(gridSize, resolution, width) {
-    let pixelSize = width / resolution;
+  perlin2Grid(gridSize, resolution) {
     let numPixels = gridSize / resolution;
     let scale = gridSize * resolution;
 
@@ -22,12 +20,25 @@ let noise = {
 
     return grid;
   },
-  simplex() {
-    //TODO
+  simplex2Grid(gridSize, resolution) {
+    let numPixels = gridSize / resolution;
+    let scale = gridSize * resolution;
+
+    let grid = Array.from(new Array(scale), x => new Array(scale))
+
+    for (let y = 0; y < gridSize; y += numPixels / gridSize) {
+      for (let x = 0; x < gridSize; x += numPixels / gridSize) {
+        let yi = y / numPixels * gridSize;
+        let xi = x / numPixels * gridSize;
+        grid[yi][xi] = this._s.get(x, y);
+      }
+    }
+
+    return grid;
   },
   _p: {
     randomUnitVector() {
-      this.seed = prng(this.seed);
+      this.seed = new alea(this.seed)();
       let theta = this.seed * 2 * Math.PI;
       return {
         x: Math.cos(theta),
@@ -37,7 +48,7 @@ let noise = {
     reset(s) {
       this.gradients = {};
       this.memory = {};
-      this.seed = prng(s ?? Math.random());
+      this.seed = new alea(s || Date.now())();
     },
     smooth(x) {
       return 6*x**5 - 15*x**4 + 10*x**3;
@@ -129,27 +140,27 @@ let noise = {
         n0 = 0;
       } else {
         t0 *= t0;
-        n0 = t0 * t0 * this.dot(gi0, {x0, y0});  // (x,y) of grad3 used for 2D gradient
+        n0 = t0 * t0 * this.dot(gi0.x, gi0.y, x0, y0);  // (x,y) of grad3 used for 2D gradient
       }
       var t1 = 0.5 - x1*x1-y1*y1;
       if(t1<0) {
         n1 = 0;
       } else {
         t1 *= t1;
-        n1 = t1 * t1 * this.dot(gi1, {x1, y1});
+        n1 = t1 * t1 * this.dot(gi1.x, gi1.y, x1, y1);
       }
       var t2 = 0.5 - x2*x2-y2*y2;
       if(t2<0) {
         n2 = 0;
       } else {
         t2 *= t2;
-        n2 = t2 * t2 * this.dot(gi2, {x2, y2});
+        n2 = t2 * t2 * this.dot(gi2.x, gi2.y, x2, y2);
       }
       // Add contributions from each corner to get the final noise value.
       // The result is scaled to return values in the interval [-1,1].
       return 70 * (n0 + n1 + n2);
     },
-    dot({x1,y1}, {x2, y2}) {
+    dot(x1,y1, x2, y2) {
       return x1*x2 + y1*y2;
     },
     seed(seed) {
@@ -166,19 +177,19 @@ let noise = {
       for(var i = 0; i < 256; i++) {
         var v;
         if (i & 1) {
-          v = p[i] ^ (seed & 255);
+          v = this.p[i] ^ (seed & 255);
         } else {
-          v = p[i] ^ ((seed>>8) & 255);
+          v = this.p[i] ^ ((seed>>8) & 255);
         }
 
-        perm[i] = perm[i + 256] = v;
-        gradP[i] = gradP[i + 256] = grad2[v % 12];
+        this.perm[i] = this.perm[i + 256] = v;
+        this.gradP[i] = this.gradP[i + 256] = this.grad2[v % 12];
       }
     },
-    reset() {
+    reset(seed) {
       this.perm = new Array(512);
       this.gradP = new Array(512);
-      this.seed(0);
+      this.seed(seed);
     }
   }
 }

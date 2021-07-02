@@ -14,6 +14,15 @@ html, body {
   height: 100vh;
 }
 
+/* .controls {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 24px;
+  height: 224px;
+  background: #fff;
+} */
+
 p {
   color: #ffffff;
   user-select: none;
