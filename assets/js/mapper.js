@@ -1,3 +1,3 @@
 function Mapper() {
-  //TODO
+  //TODO: write the mapper
 }

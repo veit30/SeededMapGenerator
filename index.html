@@ -55,13 +55,23 @@
 
       generateNoise();
 
+      // TODO: specify controls
       let c = new Controls();
       c.addDropdown("Test", ["Eins", "Zwei", "Drei"]);
       c.setValueChangeCallback(function(key, value) {
-        console.log(key);
-        console.log(value);
+        // TODO: specify callback
+        console.log("Controls callback:");
+        console.log(`Key: ${key}`);
+        console.log(`Value: ${value}`);
       })
+      c.addRange("range1", {
+        min:0,
+        max:10,
+        step:1,
+      })
+      c.addBoolean("Test Boolean")
       c.show();
+      console.log(c.valueMap);
 
     </script>
   </body>
