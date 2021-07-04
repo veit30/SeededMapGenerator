@@ -17,14 +17,22 @@
     </div>
     <script type="text/javascript">
       // GLOBALS
-      const WIDTH = 512;
-      const GRID_SIZE = 4;
-      const RESOLUTION = 64;
+      // const WIDTH = 512;
+      // const GRID_SIZE = 4;
+      // const RESOLUTION = 64;
       const COLOR_SCALE = 255;
+
+      const CONFIG = {
+        WIDTH: 512,
+        GRID_SIZE: 4,
+        RESOLUTION: 64,
+        NOISE: "perlin",
+        COLOR_MAPPER: "simple",
+      }
 
       // CANVAS
       let canvas = document.getElementById("canvas");
-      canvas.width = canvas.height = WIDTH;
+      canvas.width = canvas.height = CONFIG.WIDTH;
       let ctx = canvas.getContext("2d");
 
       // NOISE
@@ -46,9 +54,9 @@
 
       function generateNoise() {
         noise.reset(Date.now())
-        let grid = noise.perlin2Grid(GRID_SIZE, RESOLUTION);
+        let grid = CONFIG.NOISE === "perlin" ? noise.perlin2Grid(CONFIG.GRID_SIZE, CONFIG.RESOLUTION) : noise.simplex2Grid(CONFIG.GRID_SIZE, CONFIG.RESOLUTION);
         // let grid = noise.simplex2Grid(GRID_SIZE, RESOLUTION);
-        renderNoiseGridOnCanvas(grid, GRID_SIZE, ctx, utils.colorMapper.simple);
+        renderNoiseGridOnCanvas(grid, CONFIG.GRID_SIZE, ctx, utils.colorMapper[CONFIG.COLOR_MAPPER]);
       }
 
       canvas.addEventListener("click", generateNoise, false)
@@ -57,21 +65,31 @@
 
       // TODO: specify controls
       let c = new Controls();
-      c.addDropdown("Test", ["Eins", "Zwei", "Drei"]);
-      c.setValueChangeCallback(function(key, value) {
-        // TODO: specify callback
-        console.log("Controls callback:");
-        console.log(`Key: ${key}`);
-        console.log(`Value: ${value}`);
-      })
-      c.addRange("range1", {
-        min:0,
+      c.addDropdown("NOISE", ["perlin", "simplex"]);
+      c.addDropdown("COLOR_MAPPER", ["simple", "highlighted", "colored"])
+      c.addRange("GRID_SIZE", {
+        min:1,
         max:10,
         step:1,
+        defaultValue: 4,
       })
-      c.addBoolean("Test Boolean")
+      // c.addRange("RESOLUTION", {
+      //   min:16,
+      //   max:128,
+      //   step:8,
+      //   defaultValue: 64,
+      //   hasTickmarks: true,
+      //   tickmarks: [4, 8, 16, 32, 64, 128],
+      //
+      // })
+      c.addDropdown("RESOLUTION", [4, 8, 16, 32, 64, 128]);
+      c.setValueChangeCallback(function(key, value) {
+        CONFIG[key] = value;
+      })
       c.show();
-      console.log(c.valueMap);
+      Object.keys(c.valueMap).forEach(key => {
+        CONFIG[key] = c.valueMap[key];
+      })
 
     </script>
   </body>

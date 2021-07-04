@@ -18,7 +18,15 @@ function Controls() {
           position: absolute;
           top: 0;
           right: 0;
-          background: #fff;
+          background: #000;
+          display: flex;
+          flex-direction: column;
+          color: #fff;
+          font-size: 12px;
+        }
+
+        .control-wrapper {
+          margin: 4px 8px 4px 8px;
         }
         `
         shadowRoot.appendChild(style);
@@ -39,7 +47,7 @@ Controls.prototype.addDropdown = function(name, options) {
   }
 }
 
-Controls.prototype.addRange = function(name, {min, max, step, defaultValue, tickmarks}) {
+Controls.prototype.addRange = function(name, {min, max, step, defaultValue, hasTickmarks, tickmarks}) {
   //TODO: step as function
   min = min ?? 0;
   max = max ?? 0;
@@ -52,6 +60,7 @@ Controls.prototype.addRange = function(name, {min, max, step, defaultValue, tick
       max,
       step: step ?? 1,
       defaultValue,
+      hasTickmarks,
       tickmarks,
     },
     value: defaultValue,
@@ -96,6 +105,8 @@ Controls.prototype.placeParameters = function() {
 }
 
 Controls.prototype.generateDropdown = function(name, {options}) {
+  let wrapper = document.createElement("div");
+  wrapper.classList.add("control-wrapper");
   let select = document.createElement("select");
   select.name = name;
   select.id = name;
@@ -103,7 +114,7 @@ Controls.prototype.generateDropdown = function(name, {options}) {
   for (const val of options) {
     var option = document.createElement("option");
     option.value = val;
-    option.text = val.charAt(0).toUpperCase() + val.slice(1);
+    option.text = val
     select.appendChild(option);
   }
 
@@ -113,18 +124,34 @@ Controls.prototype.generateDropdown = function(name, {options}) {
   }, false);
 
   let label = document.createElement("label");
-  label.innerHTML = "Dropdown: "
+  label.innerHTML = `${name}:`;
   label.htmlFor = name;
-  this.controlsContainer.appendChild(label);
-  this.controlsContainer.appendChild(select);
+  wrapper.appendChild(label);
+  wrapper.appendChild(select);
+  this.controlsContainer.appendChild(wrapper);
 }
 
-Controls.prototype.generateRange = function(name, {min, max, step, defaultValue, tickmarks}) {
+Controls.prototype.generateRange = function(name, {min, max, step, defaultValue, hasTickmarks, tickmarks}) {
+  let wrapper = document.createElement("div");
+  wrapper.classList.add("control-wrapper");
   let range = document.createElement("input");
   range.type = "range";
   range.id = name;
-  if (tickmarks) {
-    range.list = `${name}-tickmarks`;
+  let datalist;
+  if (hasTickmarks) {
+    range.setAttribute("list", `${name}-tickmarks`);
+    datalist = document.createElement("datalist");
+    datalist.id = `${name}-tickmarks`;
+
+    let option;
+    if(tickmarks) {
+      for(let mark of tickmarks) {
+        option = document.createElement("option");
+        option.value = mark;
+        datalist.appendChild(option);
+      }
+    }
+
   } else {
     range.min = min;
     range.max = max;
@@ -133,19 +160,33 @@ Controls.prototype.generateRange = function(name, {min, max, step, defaultValue,
 
   range.value = defaultValue;
 
+  let valueDisplay = document.createElement("p");
+  valueDisplay.id = `${name}-range-value`;
+  valueDisplay.innerHTML = range.value;
+
   range.addEventListener("change", event => {
     this._parameters[name].value = event.path[0].value;
+    valueDisplay.innerHTML = event.path[0].value;
     this.valueChangeCallback(name, event.path[0].value);
   }, false)
 
+
+
   let label = document.createElement("label");
-  label.innerHTML = "Range: "
+  label.innerHTML = `${name}:`;
   label.htmlFor = name;
-  this.controlsContainer.appendChild(label);
-  this.controlsContainer.appendChild(range);
+  wrapper.appendChild(label);
+  wrapper.appendChild(range);
+  wrapper.appendChild(valueDisplay);
+  if(datalist) {
+    wrapper.appendChild(datalist);
+  }
+  this.controlsContainer.appendChild(wrapper);
 }
 
 Controls.prototype.generateCheckbox = function(name, {defaultValue}) {
+  let wrapper = document.createElement("div");
+  wrapper.classList.add("control-wrapper");
   let checkbox = document.createElement("input");
   checkbox.type = "checkbox";
   checkbox.id = name;
@@ -156,11 +197,12 @@ Controls.prototype.generateCheckbox = function(name, {defaultValue}) {
   });
 
   let label = document.createElement("label");
-  label.innerHTML = "Checkbox: ";
+  label.innerHTML = `${name}:`;
   label.htmlFor = name;
 
-  this.controlsContainer.appendChild(label);
-  this.controlsContainer.appendChild(checkbox);
+  wrapper.appendChild(label);
+  wrapper.appendChild(checkbox);
+  this.controlsContainer.appendChild(wrapper);
 }
 
 Controls.prototype.setValueChangeCallback = function(callback) {
